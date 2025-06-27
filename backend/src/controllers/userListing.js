@@ -139,24 +139,18 @@ let deleteCard = async (req, res) => {
       console.log("Deleting Cloudinary image:", publicId);
       await cloudinary.uploader.destroy(publicId);
     }
-
-    // ✅ Delete reviews
     await Review.deleteMany({ _id: { $in: reviewIds } });
 
-    // ✅ Remove review IDs from all users
+
     await User.updateMany(
       { reviews: { $in: reviewIds } },
       { $pull: { reviews: { $in: reviewIds } } }
     );
-
-    // ✅ Remove listing from user
     if (userId) {
       await User.findByIdAndUpdate(userId, {
         $pull: { listings: id },
       });
     }
-
-    // ✅ Delete listing
     await Listing.findByIdAndDelete(id);
 
     return res.status(200).json({ message: "Listing and associated reviews deleted successfully." });
